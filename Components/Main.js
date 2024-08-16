@@ -43,7 +43,6 @@ const Main = () => {
   }, [mode, pomodoroTime, shortBreakTime, longBreakTime]);
 
   useEffect(() => {
-    // Load tasks from local storage
     const savedTasks = localStorage.getItem("tasks");
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks));
@@ -51,10 +50,10 @@ const Main = () => {
   }, []);
 
   useEffect(() => {
-    const sound = new Audio('bell.mp3'); // Initialize sound here
-  
+    const sound = new Audio("bell.mp3");
+
     let countdown = null;
-  
+
     if (isRunning) {
       countdown = setInterval(() => {
         if (seconds > 0) {
@@ -66,18 +65,18 @@ const Main = () => {
           setIsRunning(false);
           setShowTimeUpModal(true);
           clearInterval(countdown);
-  
+
           sound.play();
         }
       }, 1000);
     } else if (!isRunning && seconds !== 0) {
       clearInterval(countdown);
     }
-  
+
     return () => {
       clearInterval(countdown);
     };
-  }, [isRunning, minutes, seconds]); // `sound` is initialized inside this effect, so it's not a dependency  
+  }, [isRunning, minutes, seconds]);
 
   const handleStartPause = () => {
     setIsRunning(!isRunning);
@@ -556,11 +555,14 @@ const Main = () => {
             boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
             zIndex: 1000,
             width: "500px",
-            textAlign: "center",
+            textAlign: "left",
           }}
         >
           <h2>Settings</h2>
           <hr style={{ margin: "10px 0" }} />
+          <div style={{ marginBottom: "10px" }}>
+            <h1 style={{ margin: "0", fontWeight: "bold" }}>Time</h1>
+          </div>
           <div
             style={{
               display: "flex",
