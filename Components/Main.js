@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { FaCog, FaSignInAlt, FaBars, FaPlus, FaClock } from "react-icons/fa";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
-import { Howl } from "howler";
 
 const Main = () => {
   const [minutes, setMinutes] = useState(25);
@@ -22,10 +21,6 @@ const Main = () => {
   const [shortBreakTime, setShortBreakTime] = useState(5);
   const [longBreakTime, setLongBreakTime] = useState(15);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-
-  const sound = new Howl({
-    src: ["bell.mp3"],
-  });
 
   useEffect(() => {
     switch (mode) {
@@ -56,6 +51,8 @@ const Main = () => {
   }, []);
 
   useEffect(() => {
+    const sound = new Audio('bell.mp3'); // Initialize sound here
+  
     let countdown = null;
   
     if (isRunning) {
@@ -70,18 +67,17 @@ const Main = () => {
           setShowTimeUpModal(true);
           clearInterval(countdown);
   
-          if (sound) {
-            sound.play();
-          }
+          sound.play();
         }
       }, 1000);
     } else if (!isRunning && seconds !== 0) {
       clearInterval(countdown);
     }
   
-    return () => clearInterval(countdown);
-  }, [isRunning, minutes, seconds, sound]);  // Add `sound` to the dependency array
-  
+    return () => {
+      clearInterval(countdown);
+    };
+  }, [isRunning, minutes, seconds]); // `sound` is initialized inside this effect, so it's not a dependency  
 
   const handleStartPause = () => {
     setIsRunning(!isRunning);
