@@ -28,30 +28,6 @@ const Main = () => {
   });
 
   useEffect(() => {
-    let countdown = null;
-
-    if (isRunning) {
-      countdown = setInterval(() => {
-        if (seconds > 0) {
-          setSeconds((prevSeconds) => prevSeconds - 1);
-        } else if (seconds === 0 && minutes > 0) {
-          setMinutes((prevMinutes) => prevMinutes - 1);
-          setSeconds(59);
-        } else if (minutes === 0 && seconds === 0) {
-          setIsRunning(false);
-          setShowTimeUpModal(true);
-          clearInterval(countdown);
-          sound.play();
-        }
-      }, 1000);
-    } else if (!isRunning && seconds !== 0) {
-      clearInterval(countdown);
-    }
-
-    return () => clearInterval(countdown);
-  }, [isRunning, minutes, seconds]);
-
-  useEffect(() => {
     switch (mode) {
       case "pomodoro":
         setMinutes(pomodoroTime);
@@ -81,7 +57,7 @@ const Main = () => {
 
   useEffect(() => {
     let countdown = null;
-
+  
     if (isRunning) {
       countdown = setInterval(() => {
         if (seconds > 0) {
@@ -93,16 +69,19 @@ const Main = () => {
           setIsRunning(false);
           setShowTimeUpModal(true);
           clearInterval(countdown);
-
-          sound.play();
+  
+          if (sound) {
+            sound.play();
+          }
         }
       }, 1000);
     } else if (!isRunning && seconds !== 0) {
       clearInterval(countdown);
     }
-
+  
     return () => clearInterval(countdown);
-  }, [isRunning, minutes, seconds]);
+  }, [isRunning, minutes, seconds, sound]);  // Add `sound` to the dependency array
+  
 
   const handleStartPause = () => {
     setIsRunning(!isRunning);
@@ -531,7 +510,7 @@ const Main = () => {
             }}
           >
             <FaClock style={{ fontSize: "48px", color: "gray" }} />
-            <h2 style={{ margin: "10px 0" }}>Time's Up!</h2>
+            <h2 style={{ margin: "10px 0" }}>Time&apos;s Up!</h2>
             <p style={{ margin: "10px 0" }}>
               The timer was set to{" "}
               {`${initialMinutes.toString().padStart(2, "0")}:${"00"}`}
