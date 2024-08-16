@@ -28,6 +28,51 @@ const Main = () => {
   });
 
   useEffect(() => {
+    let countdown = null;
+
+    if (isRunning) {
+      countdown = setInterval(() => {
+        if (seconds > 0) {
+          setSeconds((prevSeconds) => prevSeconds - 1);
+        } else if (seconds === 0 && minutes > 0) {
+          setMinutes((prevMinutes) => prevMinutes - 1);
+          setSeconds(59);
+        } else if (minutes === 0 && seconds === 0) {
+          setIsRunning(false);
+          setShowTimeUpModal(true);
+          clearInterval(countdown);
+          sound.play();
+        }
+      }, 1000);
+    } else if (!isRunning && seconds !== 0) {
+      clearInterval(countdown);
+    }
+
+    return () => clearInterval(countdown);
+  }, [isRunning, minutes, seconds]);
+
+  useEffect(() => {
+    switch (mode) {
+      case "pomodoro":
+        setMinutes(pomodoroTime);
+        setInitialMinutes(pomodoroTime);
+        break;
+      case "shortBreak":
+        setMinutes(shortBreakTime);
+        setInitialMinutes(shortBreakTime);
+        break;
+      case "longBreak":
+        setMinutes(longBreakTime);
+        setInitialMinutes(longBreakTime);
+        break;
+      default:
+        break;
+    }
+    setSeconds(0);
+  }, [mode, pomodoroTime, shortBreakTime, longBreakTime]);
+
+  useEffect(() => {
+    // Load tasks from local storage
     const savedTasks = localStorage.getItem("tasks");
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks));
@@ -135,7 +180,6 @@ const Main = () => {
       )}m ${totalSeconds % 60}s`;
 
       if (editTaskIndex !== null) {
-        // Edit mode: update the task at the specified index
         const updatedTasks = tasks.map((task, index) =>
           index === editTaskIndex
             ? { ...task, description: newTask, time: formattedTime }
@@ -145,7 +189,6 @@ const Main = () => {
         localStorage.setItem("tasks", JSON.stringify(updatedTasks));
         setEditTaskIndex(null);
       } else {
-        // Add new task
         const newTasks = [
           ...tasks,
           { description: newTask.trim(), time: formattedTime },
@@ -188,7 +231,13 @@ const Main = () => {
   };
 
   return (
-    <div style={{ backgroundColor: "blue", minHeight: "110vh" }}>
+    <div
+      style={{
+        background:
+          "linear-gradient(to right, #03001e, #7303c0, #ec38bc, #fdeff9)",
+        minHeight: "110vh",
+      }}
+    >
       <header
         style={{
           color: "white",
@@ -453,116 +502,69 @@ const Main = () => {
         </button>
       </div>
 
-      {showSettingsModal && (
+      {showTimeUpModal && (
         <div
           style={{
             position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "white",
-            padding: "20px",
-            borderRadius: "8px",
-            boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
-            zIndex: 1000,
-            width: "500px",
-            textAlign: "center",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: "1000",
           }}
         >
-          <h2>Settings</h2>
-          <hr style={{ margin: "10px 0" }} />
           <div
             style={{
+              backgroundColor: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              textAlign: "center",
+              width: "80%",
+              maxWidth: "400px",
               display: "flex",
-              justifyContent: "space-around",
-              gap: "20px",
-              marginBottom: "20px",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            <div>
-              <label>
-                Pomodoro:
-                <input
-                  type="number"
-                  value={pomodoroTime}
-                  onChange={(e) =>
-                    setPomodoroTime(parseInt(e.target.value, 10))
-                  }
-                  style={{
-                    marginLeft: "8px",
-                    width: "60px",
-                    border: "2px solid #ccc", 
-                    borderRadius: "4px", 
-                    padding: "4px", 
-                  }}
-                />
-              </label>
-            </div>
-            <div>
-              <label>
-                Short Break:
-                <input
-                  type="number"
-                  value={shortBreakTime}
-                  onChange={(e) =>
-                    setShortBreakTime(parseInt(e.target.value, 10))
-                  }
-                  style={{
-                    marginLeft: "8px",
-                    width: "60px",
-                    border: "2px solid #ccc", 
-                    borderRadius: "4px", 
-                    padding: "4px", 
-                  }}
-                />
-              </label>
-            </div>
-            <div>
-              <label>
-                Long Break:
-                <input
-                  type="number"
-                  value={longBreakTime}
-                  onChange={(e) =>
-                    setLongBreakTime(parseInt(e.target.value, 10))
-                  }
-                  style={{
-                    marginLeft: "8px",
-                    width: "60px",
-                    border: "2px solid #ccc", 
-                    borderRadius: "4px", 
-                    padding: "4px", 
-                  }}
-                />
-              </label>
+            <FaClock style={{ fontSize: "48px", color: "gray" }} />
+            <h2 style={{ margin: "10px 0" }}>Time's Up!</h2>
+            <p style={{ margin: "10px 0" }}>
+              The timer was set to{" "}
+              {`${initialMinutes.toString().padStart(2, "0")}:${"00"}`}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button
+                style={{
+                  margin: "10px",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  backgroundColor: "blue",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+                onClick={handleReset}
+              >
+                Reset
+              </button>
+              <button
+                style={{
+                  margin: "10px",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  backgroundColor: "red",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+                onClick={handleStop}
+              >
+                Stop
+              </button>
             </div>
           </div>
-          <button
-            onClick={handleSaveSettings}
-            style={{
-              margin: "10px",
-              padding: "8px",
-              backgroundColor: "green",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-            }}
-          >
-            Save
-          </button>
-          <button
-            onClick={() => setShowSettingsModal(false)}
-            style={{
-              margin: "10px",
-              padding: "8px",
-              backgroundColor: "red",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-            }}
-          >
-            Cancel
-          </button>
         </div>
       )}
 
@@ -604,9 +606,9 @@ const Main = () => {
                   style={{
                     marginLeft: "8px",
                     width: "60px",
-                    border: "2px solid #ccc", 
-                    borderRadius: "4px", 
-                    padding: "4px", 
+                    border: "2px solid #ccc",
+                    borderRadius: "4px",
+                    padding: "4px",
                   }}
                 />
               </label>
@@ -623,9 +625,9 @@ const Main = () => {
                   style={{
                     marginLeft: "8px",
                     width: "60px",
-                    border: "2px solid #ccc", 
-                    borderRadius: "4px", 
-                    padding: "4px", 
+                    border: "2px solid #ccc",
+                    borderRadius: "4px",
+                    padding: "4px",
                   }}
                 />
               </label>
@@ -643,8 +645,8 @@ const Main = () => {
                     marginLeft: "8px",
                     width: "60px",
                     border: "2px solid #ccc",
-                    borderRadius: "4px", 
-                    padding: "4px", 
+                    borderRadius: "4px",
+                    padding: "4px",
                   }}
                 />
               </label>
